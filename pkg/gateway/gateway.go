@@ -27,6 +27,7 @@ import (
 	_ "github.com/sipeed/picoclaw/pkg/channels/onebot"
 	"github.com/sipeed/picoclaw/pkg/channels/pico"
 	_ "github.com/sipeed/picoclaw/pkg/channels/qq"
+	_ "github.com/sipeed/picoclaw/pkg/channels/signal"
 	_ "github.com/sipeed/picoclaw/pkg/channels/slack"
 	_ "github.com/sipeed/picoclaw/pkg/channels/teams_webhook"
 	_ "github.com/sipeed/picoclaw/pkg/channels/telegram"

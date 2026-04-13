@@ -314,6 +314,7 @@ type ChannelsConfig struct {
 	IRC          IRCConfig          `json:"irc"           yaml:"irc,omitempty"`
 	VK           VKConfig           `json:"vk"            yaml:"vk,omitempty"`
 	TeamsWebhook TeamsWebhookConfig `json:"teams_webhook" yaml:"teams_webhook,omitempty"`
+	Signal       SignalConfig       `json:"signal"        yaml:"signal,omitempty"`
 }
 
 // GroupTriggerConfig controls when the bot responds in group chats.
@@ -594,6 +595,15 @@ type TeamsWebhookConfig struct {
 type TeamsWebhookTarget struct {
 	WebhookURL SecureString `json:"webhook_url,omitzero" yaml:"webhook_url,omitempty"`
 	Title      string       `json:"title,omitempty"      yaml:"-"`
+}
+
+type SignalConfig struct {
+	Enabled            bool                `json:"enabled"                 env:"PICOCLAW_CHANNELS_SIGNAL_ENABLED"`
+	Account            string              `json:"account"                 env:"PICOCLAW_CHANNELS_SIGNAL_ACCOUNT"`
+	SignalCLIURL       string              `json:"signal_cli_url"          env:"PICOCLAW_CHANNELS_SIGNAL_CLI_URL"`
+	AllowFrom          FlexibleStringSlice `json:"allow_from"              env:"PICOCLAW_CHANNELS_SIGNAL_ALLOW_FROM"`
+	GroupTrigger       GroupTriggerConfig  `json:"group_trigger,omitempty"`
+	ReasoningChannelID string              `json:"reasoning_channel_id"    env:"PICOCLAW_CHANNELS_SIGNAL_REASONING_CHANNEL_ID"`
 }
 
 type HeartbeatConfig struct {

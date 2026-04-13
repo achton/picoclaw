@@ -443,6 +443,10 @@ func (m *Manager) initChannels(channels *config.ChannelsConfig) error {
 		}
 	}
 
+	if channels.Signal.Enabled && channels.Signal.Account != "" {
+		m.initChannel("signal", "Signal")
+	}
+
 	logger.InfoCF("channels", "Channel initialization completed", map[string]any{
 		"enabled_channels": len(m.channels),
 	})
