@@ -526,6 +526,11 @@ type SlackSettings struct {
 	AppToken SecureString `json:"app_token,omitzero" yaml:"app_token,omitempty" env:"PICOCLAW_CHANNELS_SLACK_APP_TOKEN"`
 }
 
+type SignalSettings struct {
+	Account      string `json:"account"                  yaml:"-" env:"PICOCLAW_CHANNELS_SIGNAL_ACCOUNT"`
+	SignalCLIURL string `json:"signal_cli_url,omitempty" yaml:"-" env:"PICOCLAW_CHANNELS_SIGNAL_CLI_URL"`
+}
+
 type MatrixSettings struct {
 	Homeserver         string       `json:"homeserver"                     yaml:"-"                      env:"PICOCLAW_CHANNELS_MATRIX_HOMESERVER"`
 	UserID             string       `json:"user_id"                        yaml:"-"                      env:"PICOCLAW_CHANNELS_MATRIX_USER_ID"`
