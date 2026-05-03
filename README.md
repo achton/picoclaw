@@ -471,6 +471,7 @@ Talk to your PicoClaw through 19+ messaging platforms:
 | **LINE** | Medium (credentials + webhook) | Webhook | [Guide](docs/channels/line/README.md) |
 | **WeCom** | Easy (QR login or manual) | WebSocket | [Guide](docs/channels/wecom/README.md) |
 | **VK** | Easy (group token) | Long Poll | [Guide](docs/channels/vk/README.md) |
+| **Signal** | Medium (signal-cli daemon + registered phone) | JSON-RPC (signal-cli) | [Guide](docs/channels/signal/README.md) |
 | **IRC** | Medium (server + nick) | IRC protocol | [Guide](docs/guides/chat-apps.md#irc) |
 | **OneBot** | Medium (WebSocket URL) | OneBot v11 | [Guide](docs/channels/onebot/README.md) |
 | **MQTT** | Easy (broker + agent_id) | MQTT pub/sub | [Guide](docs/channels/mqtt/README.md) |
