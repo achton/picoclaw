@@ -19,7 +19,14 @@ func init() {
 			if !ok {
 				return nil, channels.ErrSendFailed
 			}
-			return NewSignalChannel(bc, c, b)
+			ch, err := NewSignalChannel(bc, c, b)
+			if err != nil {
+				return nil, err
+			}
+			if channelName != config.ChannelSignal {
+				ch.SetName(channelName)
+			}
+			return ch, nil
 		},
 	)
 }
