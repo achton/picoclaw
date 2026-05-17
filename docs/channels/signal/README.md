@@ -63,7 +63,7 @@ The new V3 channel architecture supports multiple instances of the same channel 
 }
 ```
 
-Each instance needs its own signal-cli daemon (registered to a different number). The instance key (`signal_personal`, `signal_family`) is used internally as the channel name in logs and identity routing.
+Each instance needs its own signal-cli daemon (registered to a different number). The instance key (`signal_personal`, `signal_family`) is used internally as the channel name in logs, dispatch rules, and identity routing — the channel factory in `signal/init.go` calls `SetName(channelName)` when the key differs from the channel type, matching the convention used by pico, slack_webhook, matrix, irc, dingtalk, and teams_webhook.
 
 ### Group Trigger
 
@@ -210,11 +210,11 @@ Start (or restart) PicoClaw. It will open an SSE stream to `/api/v1/events` and 
 ### Supported Message Types
 
 - **Text messages** — full support with markdown-to-Signal formatting conversion.
-- **Typing indicators** — shown while the agent is processing (refreshed every 8s).
-- **Emoji reactions** — the bot reacts with 👀 to every inbound message and removes the reaction once it replies. PicoClaw is the reference implementation of the `ReactionCapable` interface.
+- **Typing indicators** — shown while the agent is processing (refreshed every 8s via the `TypingCapable` interface).
+- **Emoji reactions** — the bot reacts with 👀 to every inbound message and removes the reaction once it replies, via the `ReactionCapable` interface (the channel manager auto-invokes `ReactToMessage` on inbound and the returned undo function before sending the reply).
 - **Group chats** — configurable trigger modes (see `group_trigger`).
 - **Direct messages** — per-sender identity, allowlist filtering.
-- **Attachments (receive)** — images (`image/jpeg`, `image/png`, `image/gif`, `image/webp`), audio and voice messages (`audio/mpeg`, `audio/mp3`, `audio/ogg`, `audio/mp4`, `audio/aac`), video (`video/mp4`), and arbitrary files are downloaded from signal-cli and passed to the agent. Voice notes surface as `[voice message]` in the prompt; other attachments surface as `[file: <name>]` or `[image: photo]`. Temp files are cleaned up after processing.
+- **Attachments (receive)** — images (`image/jpeg`, `image/png`, `image/gif`, `image/webp`), audio and voice messages (`audio/mpeg`, `audio/mp3`, `audio/ogg`, `audio/mp4`, `audio/aac`), video (`video/mp4`), and arbitrary files are downloaded from signal-cli's `/api/v1/attachments/{id}` endpoint and registered with PicoClaw's `MediaStore` under a scope keyed by `signal:<chatID>:<messageID>`. The bus receives MediaStore refs (not raw paths), so vision tools, transcription, and other downstream consumers resolve the media through the standard ref system. The MediaStore owns the temp-file lifecycle (`CleanupPolicyDeleteOnCleanup`) and releases files when the scope is GC'd — surviving gateway reloads, which re-inject a fresh store via `SetMediaStore`. Voice notes surface as `[voice message]` in the prompt; other attachments surface as `[file: <name>]` or `[image: photo]`.
 
 > Sending attachments from PicoClaw back to Signal is **not** implemented yet.
 
