@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -21,6 +20,7 @@ import (
 	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/identity"
 	"github.com/sipeed/picoclaw/pkg/logger"
+	"github.com/sipeed/picoclaw/pkg/media"
 	"github.com/sipeed/picoclaw/pkg/utils"
 )
 
@@ -406,27 +406,39 @@ func (c *SignalChannel) handleEvent(event signalEvent) {
 		}
 		content = cleaned
 	}
-	mediaPaths := []string{}
-	localFiles := []string{}
+	// Encode messageID as "timestamp:senderPhone" so ReactToMessage can extract both
+	messageID := fmt.Sprintf("%d:%s", dm.Timestamp, senderPhone)
 
-	defer func() {
-		for _, file := range localFiles {
-			if err := os.Remove(file); err != nil {
-				logger.DebugCF("signal", "Failed to cleanup temp file", map[string]any{
-					"file":  file,
-					"error": err.Error(),
-				})
+	// Build media scope upfront so attachment registration ties refs to this
+	// message; the MediaStore owns the local files' lifecycle from here on.
+	scope := channels.BuildMediaScope(c.Name(), chatID, messageID)
+	storeMedia := func(localPath, filename, contentType string) string {
+		if store := c.GetMediaStore(); store != nil {
+			ref, err := store.Store(localPath, media.MediaMeta{
+				Filename:      filename,
+				ContentType:   contentType,
+				Source:        "signal",
+				CleanupPolicy: media.CleanupPolicyDeleteOnCleanup,
+			}, scope)
+			if err == nil {
+				return ref
 			}
+			logger.WarnCF("signal", "MediaStore.Store failed; falling back to raw path", map[string]any{
+				"path":  localPath,
+				"error": err.Error(),
+			})
 		}
-	}()
+		return localPath
+	}
+
+	mediaPaths := []string{}
 
 	for _, att := range dm.Attachments {
 		localPath := c.downloadAttachment(att)
 		if localPath == "" {
 			continue
 		}
-		localFiles = append(localFiles, localPath)
-		mediaPaths = append(mediaPaths, localPath)
+		mediaPaths = append(mediaPaths, storeMedia(localPath, att.Filename, att.ContentType))
 
 		if strings.HasPrefix(att.ContentType, "image/") {
 			content = appendContent(content, "[image: photo]")
@@ -447,9 +459,6 @@ func (c *SignalChannel) handleEvent(event signalEvent) {
 	if content == "" {
 		content = "[media only]"
 	}
-
-	// Encode messageID as "timestamp:senderPhone" so ReactToMessage can extract both
-	messageID := fmt.Sprintf("%d:%s", dm.Timestamp, senderPhone)
 
 	metadata := map[string]string{
 		"timestamp":   fmt.Sprintf("%d", dm.Timestamp),
